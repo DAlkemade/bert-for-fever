@@ -1,3 +1,5 @@
+from evidence.input import parse_doc, get_doc_text
+
 TEST = False
 EMPTY_TOKEN = 'EMPTY'
 OUT_FILE_NAME = 'dev_sentences_from_bert_doc_selector'
@@ -7,6 +9,8 @@ import argparse
 import json
 import sqlite3
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 db = 'D:/GitHubD/fever-allennlp/data/fever/fever.db'
 # in_file_fname = 'D:/GitHubD/fever-allennlp/data/dev_complete.sentences.p5.s5.jsonl'
@@ -14,20 +18,6 @@ in_file_fname = 'D:/GitHubD/fever-allennlp/data/fever-data/predictions_doc_dev_b
 out_file = f'D:/GitHubD/L101/data/{OUT_FILE_NAME}.tsv'
 
 conn = sqlite3.connect(db)
-
-chars = []
-
-
-def get_doc_text(id):
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT lines FROM documents WHERE id = ?",
-        (id,)
-    )
-    result = cursor.fetchone()
-    cursor.close()
-    return result
-
 
 def get_golden_docs_sentences(evidence):
     all_evi = [[e[2], e[3]] for eg in instance["evidence"] for e in eg if e[3] is not None]  # from baseline scorer
@@ -38,28 +28,6 @@ def get_golden_docs_sentences(evidence):
         gold_docs_sentences.setdefault(id, []).append(sentence_idx)
 
     return gold_docs_sentences
-
-
-def parse_doc(doc_raw):
-    """
-    Parse a list of lines from a raw document text, with the index in the list
-    correponding to the line index in the data entries
-    """
-    new = []
-    lines = doc_raw.split("\n")
-    char_count = 0
-    for line in lines:
-        # print('Line: {}'.format(line))
-        line = line.split("\t")
-
-        #   TODO: THIS MIGHT DROP PARTS OF SENTENCES AFTER A TAB
-        if len(line[1]) > 1:
-            new.append(line[1])
-            char_count += len(line[1])
-        else:
-            new.append(EMPTY_TOKEN)
-    chars.append(char_count)
-    return new
 
 
 # TODO: WAT DOEN WE MET DE NOT VERIFIABLES?
@@ -91,7 +59,7 @@ with open(in_file_fname, "r") as in_file:
                 docs = gold_docs_sentences.keys()
 
             for doc_id in docs:
-                doc_sentences = parse_doc(get_doc_text(doc_id)[0])
+                doc_sentences = parse_doc(get_doc_text(conn, doc_id)[0])
                 if doc_id in gold_docs_sentences.keys():
                     gold_sentences_idx = gold_docs_sentences[doc_id]
                 else:
@@ -112,13 +80,6 @@ with open(in_file_fname, "r") as in_file:
     data = pd.DataFrame(training_instances, columns=['evidence', 'claim', 'sentence', 'id', 'doc_id', 'sentence_idx'])
 
 data.to_csv(out_file)
-
-import numpy as np
-np.mean(chars)
-
-import matplotlib.pyplot as plt
-plt.hist(chars)
-plt.show()
 
 print(np.mean(claim_lengths))
 plt.hist(claim_lengths, bins=30)
