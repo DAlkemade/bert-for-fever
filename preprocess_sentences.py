@@ -1,11 +1,10 @@
-from evidence.input import parse_doc, get_doc_text
+from input import parse_doc, get_doc_text
 
 TEST = False
 EMPTY_TOKEN = 'EMPTY'
 OUT_FILE_NAME = 'dev_sentences_from_bert_doc_selector'
 GOLD = False
 
-import argparse
 import json
 import sqlite3
 import pandas as pd

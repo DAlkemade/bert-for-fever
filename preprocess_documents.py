@@ -1,4 +1,4 @@
-from evidence.input import get_golden_docs, get_doc_text, parse_doc
+from input import get_golden_docs, get_doc_text, parse_doc
 
 TEST = False
 OUT_FILE_NAME = 'document_selection_test_n=50'
@@ -11,13 +11,10 @@ if not LOCAL:
     from google.colab import drive
     drive.mount('/content/drive')
 
-import argparse
 import json
 import sqlite3
-import pandas as pd
 from tqdm import tqdm
 import os
-import random
 
 if LOCAL:
     fever_db = 'fever/fever.db'
