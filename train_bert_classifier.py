@@ -59,6 +59,7 @@ if __name__ == '__main__':
 
     print("Load cached training features")
     cached_features_file_train = os.path.join(WORK_DIR, args.features)
+    print(cached_features_file_train)
     features_train = torch.load(cached_features_file_train)
     len(features_train)
 
