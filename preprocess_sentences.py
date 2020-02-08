@@ -19,7 +19,7 @@ out_file = f'D:/GitHubD/L101/data/{OUT_FILE_NAME}.tsv'
 conn = sqlite3.connect(db)
 
 def get_golden_docs_sentences(evidence):
-    all_evi = [[e[2], e[3]] for eg in instance["evidence"] for e in eg if e[3] is not None]  # from baseline scorer
+    all_evi = [[e[2], e[3]] for eg in evidence for e in eg if e[3] is not None]  # from baseline scorer
     gold_docs_sentences = {}
     for entry in all_evi:
         id = entry[0]
