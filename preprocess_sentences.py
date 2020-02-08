@@ -1,4 +1,5 @@
 from input import parse_doc, get_doc_text
+import argparse
 
 TEST = False
 EMPTY_TOKEN = 'EMPTY'
@@ -29,57 +30,59 @@ def get_golden_docs_sentences(evidence):
     return gold_docs_sentences
 
 
-# TODO: WAT DOEN WE MET DE NOT VERIFIABLES?
-claim_lengths = []
-with open(in_file_fname, "r") as in_file:
-    instances = []
-    for line in in_file:
-        instances.append(json.loads(line))
-    print(f"Number of instances: {len(instances)}")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', type=bool, )
+    claim_lengths = []
+    with open(in_file_fname, "r") as in_file:
+        instances = []
+        for line in in_file:
+            instances.append(json.loads(line))
+        print(f"Number of instances: {len(instances)}")
 
-    training_instances = []
-    if TEST:
-        new_instances = []
-        for instance in instances:
-            if instance['id'] == 137334:
-                new_instances.append(instance)
-        instances = new_instances
-    for step, instance in enumerate(instances):
-        if step % 1000 == 0:
-            print(f'At step {step}')
-        if instance['verifiable'] != 'NOT VERIFIABLE':
-            claim = instance['claim']
-            claim_lengths.append(len(claim))
-            claim_id = instance['id']
-            gold_docs_sentences = get_golden_docs_sentences(instance['evidence'])
-            if not GOLD:
-                docs = instance['predicted_pages']
-            else:
-                docs = gold_docs_sentences.keys()
-
-            for doc_id in docs:
-                doc_sentences = parse_doc(get_doc_text(conn, doc_id)[0])
-                if doc_id in gold_docs_sentences.keys():
-                    gold_sentences_idx = gold_docs_sentences[doc_id]
+        training_instances = []
+        if TEST:
+            new_instances = []
+            for instance in instances:
+                if instance['id'] == 137334:
+                    new_instances.append(instance)
+            instances = new_instances
+        for step, instance in enumerate(instances):
+            if step % 1000 == 0:
+                print(f'At step {step}')
+            if instance['verifiable'] != 'NOT VERIFIABLE':
+                claim = instance['claim']
+                claim_lengths.append(len(claim))
+                claim_id = instance['id']
+                gold_docs_sentences = get_golden_docs_sentences(instance['evidence'])
+                if not GOLD:
+                    docs = instance['predicted_pages']
                 else:
-                    gold_sentences_idx = []
+                    docs = gold_docs_sentences.keys()
 
-                for i in range(len(doc_sentences)):
-                    if i in gold_sentences_idx:
-                        label = 1
+                for doc_id in docs:
+                    doc_sentences = parse_doc(get_doc_text(conn, doc_id)[0])
+                    if doc_id in gold_docs_sentences.keys():
+                        gold_sentences_idx = gold_docs_sentences[doc_id]
                     else:
-                        label = 0
-                    sentence = doc_sentences[i]
-                    if sentence != EMPTY_TOKEN:
-                        training_instances.append([label, claim, sentence, claim_id, doc_id, i])
-            # print(instance['evidence'])
-            # print(instance['evidence'][0])
-            # print(gold_docs_sentences)
+                        gold_sentences_idx = []
 
-data = pd.DataFrame(training_instances, columns=['label', 'claim', 'context', 'claim_id', 'doc_id', 'sentence_idx'])
+                    for i in range(len(doc_sentences)):
+                        if i in gold_sentences_idx:
+                            label = 1
+                        else:
+                            label = 0
+                        sentence = doc_sentences[i]
+                        if sentence != EMPTY_TOKEN:
+                            training_instances.append([label, claim, sentence, claim_id, doc_id, i])
+                # print(instance['evidence'])
+                # print(instance['evidence'][0])
+                # print(gold_docs_sentences)
 
-data.to_csv(out_file)
+    data = pd.DataFrame(training_instances, columns=['label', 'claim', 'context', 'claim_id', 'doc_id', 'sentence_idx'])
 
-print(np.mean(claim_lengths))
-plt.hist(claim_lengths, bins=30)
-plt.show()
+    data.to_csv(out_file)
+
+    print(np.mean(claim_lengths))
+    plt.hist(claim_lengths, bins=30)
+    plt.show()
