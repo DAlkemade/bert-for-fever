@@ -44,6 +44,7 @@ def create_features(data, add_title, tokenizer):
     torch.save(features, os.path.join(WORK_DIR, f'{datetime.now().strftime("%y%m%d%H%M%S")}features_include_title={add_title}_from_{data_fname.split(".")[0].split("/")[-1]}'))
     return features
 
+print("Imported tokenize_sentences")
 if __name__ is '__main__':
     parser = argparse.ArgumentParser(description='Argument parser')
     parser.add_argument("--test", default=False, type=bool, help="Run on small sample")
