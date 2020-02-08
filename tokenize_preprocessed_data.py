@@ -1,5 +1,4 @@
 import pandas as pd
-from google.colab import drive
 import torch
 from tqdm import tqdm
 from transformers import *
@@ -51,7 +50,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     print("Create features")
-    drive.mount('/content/drive')
     data_fname = args.data
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
