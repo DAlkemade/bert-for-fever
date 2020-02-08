@@ -4,7 +4,6 @@ import random
 
 import numpy as np
 import torch
-from google.colab import drive
 from torch.utils.data import (DataLoader, TensorDataset, WeightedRandomSampler)
 from tqdm import trange
 from transformers import *
@@ -51,7 +50,6 @@ if __name__ == '__main__':
     parser.add_argument('--samplenegative', default=True)
 
     args = parser.parse_args()
-    drive.mount('/content/drive')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_gpu = torch.cuda.device_count()
