@@ -76,7 +76,7 @@ with open(in_file_fname, "r") as in_file:
             # print(instance['evidence'][0])
             # print(gold_docs_sentences)
 
-    data = pd.DataFrame(training_instances, columns=['evidence', 'claim', 'sentence', 'id', 'doc_id', 'sentence_idx'])
+data = pd.DataFrame(training_instances, columns=['label', 'claim', 'context', 'claim_id', 'doc_id', 'sentence_idx'])
 
 data.to_csv(out_file)
 

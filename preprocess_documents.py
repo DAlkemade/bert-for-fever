@@ -1,4 +1,7 @@
+import random
+
 from input import get_golden_docs, get_doc_text, parse_doc
+import pandas as pd
 
 TEST = False
 OUT_FILE_NAME = 'document_selection_test_n=50'
@@ -76,6 +79,23 @@ with open(in_file_fname, "r") as in_file:
                     label = None
                 training_instances.append([label, claim, context, claim_id, doc_id])
 
+if SAMPLE_NEGATIVE_INSTANCES:
+    new_instances = []
+    for f in training_instances:
+        if f[0] == 1:
+            new_instances.append(f)
+        else:
+            #throw away 90% of neg instances at random
+            if random.uniform(0,1) < 0.1:
+                new_instances.append(f)
+    training_instances = new_instances
 
+
+len(training_instances)
+
+print(len(training_instances))
+data = pd.DataFrame(training_instances, columns =['label', 'claim', 'context', 'claim_id', 'doc_id'])
+
+data.to_csv(out_file)
 
 
