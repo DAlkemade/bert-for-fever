@@ -7,9 +7,9 @@ import numpy as np
 import torch
 from transformers import *
 
-from bert_model_wrapper import DocumentBertModel
-from inference_util import create_dataloader_dev
-from input import load_or_create_evidence, retrieve_claim_doc_ids
+from bert_for_fever.bert_model_wrapper import DocumentBertModel
+from bert_for_fever.inference_util import create_dataloader_dev
+from bert_for_fever.input import load_or_create_evidence, retrieve_claim_doc_ids
 
 N = 5
 pp = pprint.PrettyPrinter(indent=4)

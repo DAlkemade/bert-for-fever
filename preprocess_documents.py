@@ -7,7 +7,7 @@ import sqlite3
 import pandas as pd
 from tqdm import trange
 
-from input import get_golden_docs, get_doc_text, parse_doc
+from bert_for_fever.input import get_golden_docs, get_doc_text, parse_doc
 
 
 def main():

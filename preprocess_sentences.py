@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from tqdm import trange
 
-from input import parse_doc, get_doc_text
+from bert_for_fever.input import parse_doc, get_doc_text
 
 EMPTY_TOKEN = 'EMPTY'
 

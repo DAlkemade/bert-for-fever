@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from torch.utils.data import (DataLoader, TensorDataset, WeightedRandomSampler)
 
-from bert_model_wrapper import BertModelWrapper
+from bert_for_fever.bert_model_wrapper import BertModelWrapper
 
 BATCH_SIZE = 10
 
