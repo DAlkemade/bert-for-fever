@@ -44,6 +44,7 @@ def create_dataloader_training(features):
 
 
 class BertModel(object):
+    """"Handles BERT model and its requirements."""
     def __init__(self):
         self.model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=2)
         self.model.cuda()
@@ -62,6 +63,7 @@ class BertModel(object):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def train(self, dataloader_train):
+        """"Train model with data in dataloader_train."""
         train_loss_set = []
 
         for _ in trange(EPOCHS, desc="Epoch"):
@@ -93,6 +95,7 @@ class BertModel(object):
 
 
 def sample_negative(features_train):
+    """"Sample from the instances with a negative label."""
     new_features = []
     for f in features_train:
         if f.label == 1:
@@ -105,6 +108,7 @@ def sample_negative(features_train):
 
 
 def main():
+    """Train a BERT classifier with on the features supplied with the cmd line argument."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--features', required=True)
     parser.add_argument('--samplenegative', default=True)
