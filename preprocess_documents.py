@@ -5,12 +5,17 @@ import random
 import sqlite3
 
 import pandas as pd
-from tqdm import tqdm, trange
+from tqdm import trange
 
 from input import get_golden_docs, get_doc_text, parse_doc
 
 
 def main():
+    """Run documents preprocessing.
+
+    Retrieve documents selected by the baseline, make ready for tokenization
+    and save in a csv file.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--local', type=bool, required=True)
     parser.add_argument('--testset', type=bool, required=True)
@@ -56,6 +61,11 @@ def sample_negative(training_instances):
 
 
 def parse_instances(test, conn, in_file_fname):
+    """Preprare documents for next pipeline step.
+
+        Loop through the baselines document selector results in_file_fname, retrieve the text of these documents
+        and return in suitable format for tokenization.
+        """
     with open(in_file_fname, "r") as in_file:
         instances = []
         for line in in_file:
