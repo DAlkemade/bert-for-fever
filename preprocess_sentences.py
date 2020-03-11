@@ -1,5 +1,6 @@
-from input import parse_doc, get_doc_text
 import argparse
+
+from input import parse_doc, get_doc_text
 
 TEST = False
 EMPTY_TOKEN = 'EMPTY'
@@ -18,6 +19,7 @@ in_file_fname = 'D:/GitHubD/fever-allennlp/data/fever-data/predictions_doc_dev_b
 out_file = f'D:/GitHubD/L101/data/{OUT_FILE_NAME}.tsv'
 
 conn = sqlite3.connect(db)
+
 
 def get_golden_docs_sentences(evidence):
     all_evi = [[e[2], e[3]] for eg in evidence for e in eg if e[3] is not None]  # from baseline scorer

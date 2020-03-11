@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data import (DataLoader, TensorDataset, WeightedRandomSampler)
+from torch.utils.data import (DataLoader, TensorDataset)
 
 BATCH_SIZE = 32
 

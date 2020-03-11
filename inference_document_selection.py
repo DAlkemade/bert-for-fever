@@ -1,15 +1,14 @@
 import argparse
-
-import pandas as pd
-from google.colab import drive
-import torch
-from transformers import *
-import numpy as np
-import os
 import json
-import pprint
-from scipy.special import softmax
+import os
 import pickle
+import pprint
+
+import numpy as np
+import pandas as pd
+import torch
+from scipy.special import softmax
+from transformers import *
 
 from inference_util import create_dataloader_dev
 
@@ -39,8 +38,6 @@ if __name__ == '__main__':
     parser.add_argument("--previousevidence", required=True, type=bool)
     parser.add_argument("--firsthalf", required=True, type=bool)
     parser.add_argument("--halfdata", required=True, type=bool)
-
-
 
     args = parser.parse_args()
 

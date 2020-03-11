@@ -1,5 +1,6 @@
 EMPTY_TOKEN = 'EMPTY'
 
+
 def get_doc_text(conn, id):
     cursor = conn.cursor()
     cursor.execute(

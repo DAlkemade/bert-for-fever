@@ -1,12 +1,13 @@
-import random
-
-from input import get_golden_docs, get_doc_text, parse_doc
-import pandas as pd
 import argparse
 import json
-import sqlite3
-from tqdm import tqdm
 import os
+import random
+import sqlite3
+
+import pandas as pd
+from tqdm import tqdm
+
+from input import get_golden_docs, get_doc_text, parse_doc
 
 OUT_FILE_NAME = 'document_selection_test_n=50'
 
@@ -19,12 +20,12 @@ if __name__ == '__main__':
     parser.add_argument('--samplenegative', type=bool, default=False)
     args = parser.parse_args()
 
-
     if args.local:
         fever_db = 'fever/fever.db'
         root = 'D:/GitHubD/fever-allennlp/data'
     else:
         from google.colab import drive
+
         drive.mount('/content/drive')
         fever_db = 'fever.db'
         root = '/content/drive/My Drive/Overig/'
@@ -88,17 +89,14 @@ if __name__ == '__main__':
             if f[0] == 1:
                 new_instances.append(f)
             else:
-                #throw away 90% of neg instances at random
-                if random.uniform(0,1) < 0.1:
+                # throw away 90% of neg instances at random
+                if random.uniform(0, 1) < 0.1:
                     new_instances.append(f)
         training_instances = new_instances
-
 
     len(training_instances)
 
     print(len(training_instances))
-    data = pd.DataFrame(training_instances, columns =['label', 'claim', 'context', 'claim_id', 'doc_id'])
+    data = pd.DataFrame(training_instances, columns=['label', 'claim', 'context', 'claim_id', 'doc_id'])
 
     data.to_csv(out_file)
-
-

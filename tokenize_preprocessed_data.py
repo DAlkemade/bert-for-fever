@@ -1,11 +1,11 @@
+import argparse
+import os
+from datetime import datetime
+
 import pandas as pd
 import torch
 from tqdm import tqdm
 from transformers import *
-import matplotlib.pyplot as plt
-from datetime import datetime
-import os
-import argparse
 
 MAX_SENTENCE_LENGTH = 512  # maybe make smaller and then batch size higher
 PADDING_TOKEN_TYPE_ID = 0  # take the advice at https://github.com/huggingface/transformers/blob/0cb163865a4c761c226b151283309eedb2b1ca4d/transformers/data/processors/glue.py#L30
@@ -37,7 +37,8 @@ def create_features(data, add_title, tokenizer):
     contexts = list(data.context)
     labels = list(data.label)
     doc_ids = list(data.doc_id)
-    features = [prep_instance(claims[i], contexts[i], labels[i], doc_ids[i], add_title, tokenizer) for i in tqdm(range(len(claims)))]
+    features = [prep_instance(claims[i], contexts[i], labels[i], doc_ids[i], add_title, tokenizer) for i in
+                tqdm(range(len(claims)))]
     return features
 
 
