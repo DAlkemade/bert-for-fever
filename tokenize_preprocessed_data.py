@@ -12,8 +12,8 @@ PADDING_TOKEN_TYPE_ID = 0  # take the advice at https://github.com/huggingface/t
 WORK_DIR = '/content/drive/My Drive/Overig'
 
 
-def prep_instance(claim, context, label, doc_id, add_title, tokenizer):
-    # print(f'Total length: {len(claim) + len(source_sentence)}')
+def prep_instance(claim, context, label, doc_id, add_title, tokenizer, pad_token):
+    """Tokenize a single instance, after formatting it."""
     if add_title:
         context = f'[ {doc_id} ] {context}'
     encodings = tokenizer.encode_plus(claim, context, add_special_tokens=True,
@@ -32,44 +32,39 @@ def prep_instance(claim, context, label, doc_id, add_title, tokenizer):
                          token_type_ids=token_type_ids, label=label)
 
 
-def create_features(data, add_title, tokenizer):
+def create_features(data: pd.DataFrame, add_title: bool, tokenizer: BertTokenizer):
+    """Tokenize the instances in data with the tokenizer."""
     claims = list(data.claim)
     contexts = list(data.context)
     labels = list(data.label)
     doc_ids = list(data.doc_id)
-    features = [prep_instance(claims[i], contexts[i], labels[i], doc_ids[i], add_title, tokenizer) for i in
+    pad_token = tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0]
+    features = [prep_instance(claims[i], contexts[i], labels[i], doc_ids[i], add_title, tokenizer, pad_token) for i in
                 tqdm(range(len(claims)))]
     return features
 
 
-if __name__ == '__main__':
+def main():
+    """Tokenize the output of one of the preprocess modules to prepare for either inference or training."""
     parser = argparse.ArgumentParser(description='Argument parser')
-    parser.add_argument("--test", default=False, type=bool, help="Run on small sample")
     parser.add_argument("--addtitle", default=False, type=bool, help="Add title to sentence")
     parser.add_argument("--data", default='/content/drive/My Drive/Overig/dev_sentences_from_bert_doc_selector.tsv',
                         type=str, help='tsv file with document or sentence data')
-
     args = parser.parse_args()
+
     print("Create features")
     data_fname = args.data
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    n_gpu = torch.cuda.device_count()
-    torch.cuda.get_device_name(0)
-
     data = pd.read_csv(data_fname)
-
-    if args.test:
-        data = data[:100]
-
     print(f"Number of training instances: {len(data.index)}")
 
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
-    pad_token = tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0]
-
     features = create_features(data, args.addtitle, tokenizer)
+
     print("Save features")
     time = datetime.now().strftime("%y%m%d%H%M%S")
     fname = f'{time}features_document_selection_from_{data_fname.split(".")[0].split("/")[-1]}'
-
     torch.save(features, os.path.join(WORK_DIR, fname))
+
+
+if __name__ == '__main__':
+    main()
