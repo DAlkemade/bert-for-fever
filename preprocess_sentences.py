@@ -1,24 +1,15 @@
 import argparse
+import json
+import sqlite3
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from tqdm import trange
 
 from input import parse_doc, get_doc_text
 
-TEST = False
 EMPTY_TOKEN = 'EMPTY'
-OUT_FILE_NAME = 'dev_sentences_from_bert_doc_selector'
-GOLD = False
-
-import json
-import sqlite3
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-db = 'D:/GitHubD/fever-allennlp/data/fever/fever.db'
-# in_file_fname = 'D:/GitHubD/fever-allennlp/data/dev_complete.sentences.p5.s5.jsonl'
-in_file_fname = 'D:/GitHubD/fever-allennlp/data/fever-data/predictions_doc_dev_bert.jsonl'
-out_file = f'D:/GitHubD/L101/data/{OUT_FILE_NAME}.tsv'
-
-conn = sqlite3.connect(db)
 
 
 def get_golden_docs_sentences(evidence):
@@ -32,10 +23,32 @@ def get_golden_docs_sentences(evidence):
     return gold_docs_sentences
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test', type=bool, )
+    parser.add_argument('--db', default='D:/GitHubD/fever-allennlp/data/fever/fever.db', type=str)
+    parser.add_argument('--infile', default='D:/GitHubD/fever-allennlp/data/fever-data/predictions_doc_dev_bert.jsonl',
+                        type=str)
+    parser.add_argument('--outfile', default='D:/GitHubD/L101/data/dev_sentences_from_bert_doc_selector.tsv', type=str)
+    parser.add_argument('--appendgold', default=False, type=bool)
+
+    args = parser.parse_args()
+    db = args.db
+    in_file_fname = args.infile
+    out_file = args.outfile
+
+    conn = sqlite3.connect(db)
     claim_lengths = []
+
+    training_instances = parse_instances(claim_lengths, conn, in_file_fname, args.appendgold)
+
+    data = pd.DataFrame(training_instances, columns=['label', 'claim', 'context', 'claim_id', 'doc_id', 'sentence_idx'])
+    data.to_csv(out_file)
+    print(f'Mean claim length: {np.mean(claim_lengths)}')
+    plt.hist(claim_lengths, bins=30)
+    plt.show()
+
+
+def parse_instances(claim_lengths, conn, in_file_fname, append_gold: bool):
     with open(in_file_fname, "r") as in_file:
         instances = []
         for line in in_file:
@@ -43,21 +56,15 @@ if __name__ == '__main__':
         print(f"Number of instances: {len(instances)}")
 
         training_instances = []
-        if TEST:
-            new_instances = []
-            for instance in instances:
-                if instance['id'] == 137334:
-                    new_instances.append(instance)
-            instances = new_instances
-        for step, instance in enumerate(instances):
-            if step % 1000 == 0:
-                print(f'At step {step}')
+        for i in trange(instances):
+            instance = instances[i]
+
             if instance['verifiable'] != 'NOT VERIFIABLE':
                 claim = instance['claim']
                 claim_lengths.append(len(claim))
                 claim_id = instance['id']
                 gold_docs_sentences = get_golden_docs_sentences(instance['evidence'])
-                if not GOLD:
+                if not append_gold:
                     docs = instance['predicted_pages']
                 else:
                     docs = gold_docs_sentences.keys()
@@ -77,14 +84,8 @@ if __name__ == '__main__':
                         sentence = doc_sentences[i]
                         if sentence != EMPTY_TOKEN:
                             training_instances.append([label, claim, sentence, claim_id, doc_id, i])
-                # print(instance['evidence'])
-                # print(instance['evidence'][0])
-                # print(gold_docs_sentences)
+    return training_instances
 
-    data = pd.DataFrame(training_instances, columns=['label', 'claim', 'context', 'claim_id', 'doc_id', 'sentence_idx'])
 
-    data.to_csv(out_file)
-
-    print(np.mean(claim_lengths))
-    plt.hist(claim_lengths, bins=30)
-    plt.show()
+if __name__ == '__main__':
+    main()
