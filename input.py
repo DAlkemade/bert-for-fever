@@ -1,3 +1,7 @@
+import pickle
+
+import pandas as pd
+
 EMPTY_TOKEN = 'EMPTY'
 
 
@@ -40,3 +44,30 @@ def parse_doc(doc_raw):
         else:
             new.append(EMPTY_TOKEN)
     return new
+
+
+def load_or_create_evidence(load_previous: bool, claim_ids):
+    if load_previous:
+        try:
+            with open('/content/drive/My Drive/Overig/docs_evidence_full_hnm.pkl', 'rb') as f:
+                evidence = pickle.load(f)
+            with open('/content/drive/My Drive/Overig/docs_evidence_all_full_hnm.pkl', 'rb') as f:
+                evidence_all_scores = pickle.load(f)
+        except AttributeError:
+            raise AttributeError("Supply evidence location arguments when loading previous evidence.")
+        print("Loaded evidence")
+    else:
+        evidence = dict((el, []) for el in dict.fromkeys(claim_ids))
+        evidence_all_scores = dict((el, []) for el in dict.fromkeys(claim_ids))
+    return evidence, evidence_all_scores
+
+
+def retrieve_claim_doc_ids(data_fname, sentence_ids: bool = False):
+    """Retrieve columns from original tsv preprocessed data."""
+    data = pd.read_csv(data_fname)
+    claim_ids = list(data.claim_id)
+    doc_ids = list(data.doc_id)
+    if sentence_ids:
+        sentence_idxs = list(data.sentence_idx)
+        return claim_ids, doc_ids, sentence_idxs
+    return claim_ids, doc_ids
