@@ -1,10 +1,6 @@
-import argparse
-import os
 import random
 
 import numpy as np
-import torch
-from torch.utils.data import (DataLoader, TensorDataset, WeightedRandomSampler)
 
 from bert_for_fever.bert_model_wrapper import BertModelWrapper
 
@@ -46,37 +42,17 @@ def sample_negative(features_train):
     return new_features
 
 
-def main():
-    """Train a BERT classifier with on the features supplied with the cmd line argument."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--features', required=True)
-    parser.add_argument('--samplenegative', default=True)
-    parser.add_argument("--workdir", default='/content/drive/My Drive/Overig', type=str)
-
-    args = parser.parse_args()
-
-    print("Load cached training features")
-    cached_features_file_train = os.path.join(args.workdir, args.features)
-    features_train = torch.load(cached_features_file_train)
-    if args.samplenegative:
+def train_model(cached_features_fname: str, sample_negative_instances: bool, work_dir: str):
+    """Train a model on the featuers given in cached_features_file_train."""
+    features_train = torch.load(cached_features_fname)
+    if sample_negative_instances:
         features_train = sample_negative(features_train)
-
     torch.cuda.empty_cache()
-
     print("Create train dataloader")
     dataloader_train = create_dataloader_training(features_train)
     del features_train
     print(f"Len train dataloader: {len(dataloader_train)}")
-
     bert_model = BertModelWrapper()
     train_loss_set = bert_model.train(dataloader_train)
-    bert_model.save(args.workdir)
-
-    with open(os.path.join(args.workdir, "losses.txt"), "w") as f:
-        for loss in train_loss_set:
-            f.write(f'{loss}\n')
-
-
-# Sorry for the bloated file, it was converted from a notebook
-if __name__ == '__main__':
-    main()
+    bert_model.save(work_dir)
+    return train_loss_set

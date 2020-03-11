@@ -1,6 +1,4 @@
-import argparse
 import json
-import os
 import random
 import sqlite3
 
@@ -10,42 +8,17 @@ from tqdm import trange
 from bert_for_fever.input import get_golden_docs, get_doc_text, parse_doc
 
 
-def main():
+def preprocess_documents(db: str, in_file_fname: str, test: bool, sample_negative_instances: bool):
     """Run documents preprocessing.
 
-    Retrieve documents selected by the baseline, make ready for tokenization
-    and save in a csv file.
+    Retrieve documents in in_file_name, make ready for tokenization
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--local', type=bool, required=True)
-    parser.add_argument('--testset', type=bool, required=True)
-    parser.add_argument('--samplenegative', type=bool, default=False)
-    parser.add_argument('--infile', default='test_baseline_pages.sentences.p5.s5.jsonl', type=str)
-    parser.add_argument('--outfile', default='document_selection_test_n=50', type=str)
-
-    args = parser.parse_args()
-    test = args.testset
-    if args.local:
-        fever_db = 'fever/fever.db'
-        root = 'D:/GitHubD/fever-allennlp/data'
-    else:
-        from google.colab import drive
-
-        drive.mount('/content/drive')
-        fever_db = 'fever.db'
-        root = '/content/drive/My Drive/Overig/'
-    db = os.path.join(root, fever_db)
-
-    in_file_fname = os.path.join(root, args.infile)
-    out_file = os.path.join(root, f'{args.outfile}.tsv')
     conn = sqlite3.connect(db)
-
     training_instances = parse_instances(test, conn, in_file_fname)
-    if args.samplenegative:
+    if sample_negative_instances:
         training_instances = sample_negative(training_instances)
-
     data = pd.DataFrame(training_instances, columns=['label', 'claim', 'context', 'claim_id', 'doc_id'])
-    data.to_csv(out_file)
+    return data
 
 
 def sample_negative(training_instances):
@@ -60,7 +33,7 @@ def sample_negative(training_instances):
     return new_instances
 
 
-def parse_instances(test, conn, in_file_fname):
+def parse_instances(test_or_dev_set, conn, in_file_fname):
     """Preprare documents for next pipeline step.
 
         Loop through the baselines document selector results in_file_fname, retrieve the text of these documents
@@ -75,11 +48,11 @@ def parse_instances(test, conn, in_file_fname):
 
         for i in trange(instances):
             instance = instances[i]
-            if test or instance['verifiable'] != 'NOT VERIFIABLE':
+            if test_or_dev_set or instance['verifiable'] != 'NOT VERIFIABLE':
                 claim = instance['claim']
                 claim_id = instance['id']
                 docs = instance['predicted_pages']
-                if not test:
+                if not test_or_dev_set:
                     gold_docs = get_golden_docs(instance['evidence'])
                     for gold_doc in gold_docs:
                         if gold_doc not in docs:
@@ -92,7 +65,7 @@ def parse_instances(test, conn, in_file_fname):
                     doc_as_string = ' '.join(doc_sentences)
                     context = doc_as_string
 
-                    if not test:
+                    if not test_or_dev_set:
                         if doc_id in gold_docs:
                             label = 1
                         else:
@@ -101,7 +74,3 @@ def parse_instances(test, conn, in_file_fname):
                         label = None
                     training_instances.append([label, claim, context, claim_id, doc_id])
     return training_instances
-
-
-if __name__ == '__main__':
-    main()

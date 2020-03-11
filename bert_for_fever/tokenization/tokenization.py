@@ -1,15 +1,9 @@
-import argparse
-import os
-from datetime import datetime
-
 import pandas as pd
-import torch
 from tqdm import tqdm
-from transformers import *
+from transformers import InputFeatures, BertTokenizer
 
 MAX_SENTENCE_LENGTH = 512  # maybe make smaller and then batch size higher
 PADDING_TOKEN_TYPE_ID = 0  # take the advice at https://github.com/huggingface/transformers/blob/0cb163865a4c761c226b151283309eedb2b1ca4d/transformers/data/processors/glue.py#L30
-WORK_DIR = '/content/drive/My Drive/Overig'
 
 
 def prep_instance(claim, context, label, doc_id, add_title, tokenizer, pad_token):
@@ -44,27 +38,9 @@ def create_features(data: pd.DataFrame, add_title: bool, tokenizer: BertTokenize
     return features
 
 
-def main():
-    """Tokenize the output of one of the preprocess modules to prepare for either inference or training."""
-    parser = argparse.ArgumentParser(description='Argument parser')
-    parser.add_argument("--addtitle", default=False, type=bool, help="Add title to sentence")
-    parser.add_argument("--data", default='/content/drive/My Drive/Overig/dev_sentences_from_bert_doc_selector.tsv',
-                        type=str, help='tsv file with document or sentence data')
-    args = parser.parse_args()
-
-    print("Create features")
-    data_fname = args.data
+def tokenize_features(data_fname: str, add_title: bool):
     data = pd.read_csv(data_fname)
     print(f"Number of training instances: {len(data.index)}")
-
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
-    features = create_features(data, args.addtitle, tokenizer)
-
-    print("Save features")
-    time = datetime.now().strftime("%y%m%d%H%M%S")
-    fname = f'{time}features_document_selection_from_{data_fname.split(".")[0].split("/")[-1]}'
-    torch.save(features, os.path.join(WORK_DIR, fname))
-
-
-if __name__ == '__main__':
-    main()
+    features = create_features(data, add_title, tokenizer)
+    return features

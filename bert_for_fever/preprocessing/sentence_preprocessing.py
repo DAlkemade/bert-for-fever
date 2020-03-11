@@ -1,9 +1,6 @@
-import argparse
 import json
 import sqlite3
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from tqdm import trange
 
@@ -24,34 +21,17 @@ def get_golden_docs_sentences(evidence):
     return gold_docs_sentences
 
 
-def main():
+def preprocess_sentences(args, db, in_file_fname):
     """Run sentence preprocessing.
 
-    Retrieve sentences from document selected by the previous step in the pipeline, make ready for tokenization
+    Retrieve sentences from document selected by the previous step in the pipeline (in_file_fname), make ready for tokenization
     and save in a csv file.
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--db', default='D:/GitHubD/fever-allennlp/data/fever/fever.db', type=str)
-    parser.add_argument('--infile', default='D:/GitHubD/fever-allennlp/data/fever-data/predictions_doc_dev_bert.jsonl',
-                        type=str)
-    parser.add_argument('--outfile', default='D:/GitHubD/L101/data/dev_sentences_from_bert_doc_selector.tsv', type=str)
-    parser.add_argument('--appendgold', default=False, type=bool)
-
-    args = parser.parse_args()
-    db = args.db
-    in_file_fname = args.infile
-    out_file = args.outfile
-
     conn = sqlite3.connect(db)
     claim_lengths = []
-
     training_instances = parse_instances(claim_lengths, conn, in_file_fname, args.appendgold)
-
     data = pd.DataFrame(training_instances, columns=['label', 'claim', 'context', 'claim_id', 'doc_id', 'sentence_idx'])
-    data.to_csv(out_file)
-    print(f'Mean claim length: {np.mean(claim_lengths)}')
-    plt.hist(claim_lengths, bins=30)
-    plt.show()
+    return claim_lengths, data
 
 
 def parse_instances(claim_lengths, conn, in_file_fname, append_gold: bool):
@@ -96,7 +76,3 @@ def parse_instances(claim_lengths, conn, in_file_fname, append_gold: bool):
                         if sentence != EMPTY_TOKEN:
                             training_instances.append([label, claim, sentence, claim_id, doc_id, i])
     return training_instances
-
-
-if __name__ == '__main__':
-    main()
