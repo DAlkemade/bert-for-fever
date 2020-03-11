@@ -1,5 +1,5 @@
-# bert-for-fever
-This is an evidence retrieval system for the FEVER http://fever.ai/ task.
+# Improving evidence selection using BERT 
+This is an evidence retrieval system for the FEVER http://fever.ai/ task, created for the L101 module at the University of Cambridge.
 
 **All .py files can be run using the provided Google Colab notebook run_modules.ipynb**
 
